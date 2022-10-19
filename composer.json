@@ -16,7 +16,10 @@
     "autoload": {
         "psr-4": {
             "yunkeweb\\plugin\\": "src"
-        }
+        },
+        "files": [
+            "src/helper.php"
+        ]
     },
     "extra": {
         "think":{

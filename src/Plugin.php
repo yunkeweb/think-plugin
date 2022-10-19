@@ -14,7 +14,6 @@ namespace yunkeweb\plugin;
 
 use Closure;
 use think\App;
-use think\exception\HttpException;
 use think\Request;
 use think\Response;
 
@@ -48,8 +47,6 @@ class Plugin
     public function __construct(App $app)
     {
         $this->app  = $app;
-        $this->name = $this->app->http->getName();
-        $this->path = $this->app->http->getPath();
     }
 
     /**
@@ -59,7 +56,7 @@ class Plugin
      * @param Closure $next
      * @return Response
      */
-    public function handle($request, Closure $next)
+    public function handle(Request $request, Closure $next): Response
     {
         if (!$this->parsePlugin()) {
             return $next($request);
@@ -90,7 +87,7 @@ class Plugin
 
         $name = next($pathArr);
 
-        if ($name) {
+        if ($name && $this->checkPlugin($name)) {
             $appName = $name;
             $this->app->request->setRoot('/' . $name);
             $path = strpos($path, '/') ? ltrim(strstr($path, '/'), '/') : '';
@@ -100,6 +97,12 @@ class Plugin
         }
         $this->setApp($appName);
         return true;
+    }
+
+    //检测插件是否存在
+    public function checkPlugin($name): bool
+    {
+        return is_dir($this->getBasePath() . DIRECTORY_SEPARATOR . $name);
     }
 
     /**
@@ -117,7 +120,7 @@ class Plugin
      * @return string
      */
 
-    public function getBasePath()
+    public function getBasePath(): string
     {
         return $this->app->getRootPath() . 'plugin' . DIRECTORY_SEPARATOR;
     }
@@ -131,7 +134,7 @@ class Plugin
         $this->appName = $appName;
         $this->app->http->name($appName);
 
-        $appPath = $this->path ?: $this->getBasePath() . $appName . DIRECTORY_SEPARATOR;
+        $appPath = $this->getBasePath() . $appName . DIRECTORY_SEPARATOR;
 
         $this->app->setAppPath($appPath);
         // 设置应用命名空间
@@ -162,7 +165,7 @@ class Plugin
         $files = array_merge($files, glob($appPath . 'config' . DIRECTORY_SEPARATOR . '*' . $this->app->getConfigExt()));
 
         foreach ($files as $file) {
-            $this->app->config->load($file, pathinfo($file, PATHINFO_FILENAME));
+            $this->app->config->load($file, 'plugin_'.$appName.'_'.pathinfo($file, PATHINFO_FILENAME));
         }
 
         if (is_file($appPath . 'event.php')) {
