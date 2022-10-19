@@ -1,0 +1,31 @@
+{
+    "name": "yunkeweb\/think-plugin",
+    "description": "一款tp6插件包",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "yunkeweb",
+            "email": "435325204@qq.com"
+        }
+    ],
+    "require": {
+        "php": ">=7.2.5",
+        "topthink/framework": "^6.0",
+        "topthink/think-helper": "^3.1"
+    },
+    "autoload": {
+        "psr-4": {
+            "yunkeweb\\plugin\\": "src"
+        }
+    },
+    "extra": {
+        "think":{
+            "services":[
+                "yunkeweb\\plugin\\Service"
+            ],
+            "config":{
+                "plugin": "src/config.php"
+            }
+        }
+    }
+}
