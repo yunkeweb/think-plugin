@@ -14,6 +14,7 @@ namespace yunkeweb\plugin;
 
 use Closure;
 use think\App;
+use think\Exception;
 use think\Request;
 use think\Response;
 
@@ -27,16 +28,16 @@ class Plugin
     protected $app;
 
     /**
-     * 应用名称
+     * 插件名称
      * @var string
      */
     protected $name;
 
     /**
-     * 应用名称
+     * 插件名称
      * @var string
      */
-    protected $appName;
+    protected $pluginName;
 
     /**
      * 应用路径
@@ -88,19 +89,28 @@ class Plugin
         $name = next($pathArr);
 
         if ($name && $this->checkPlugin($name)) {
-            $appName = $name;
+            $pluginName = $name;
+            // 获取info信息
+            if (!isset(plugin_info($pluginName)['status']) || plugin_info($pluginName)['status'] != 1){
+                throw new Exception("插件未启用");
+            }
             $this->app->request->setRoot('/' . $name);
             $path = strpos($path, '/') ? ltrim(strstr($path, '/'), '/') : '';
             $this->app->request->setPathinfo(strpos($path, '/') ? ltrim(strstr($path, '/'), '/') : '');
         }else{
             return false;
         }
-        $this->setApp($appName);
+        $this->setApp($pluginName);
         return true;
     }
 
+    protected function getPluginPath($pluginName)
+    {
+        return $pluginPath = $this->getBasePath() . $pluginName . DIRECTORY_SEPARATOR;
+    }
+
     //检测插件是否存在
-    public function checkPlugin($name): bool
+    protected function checkPlugin($name): bool
     {
         return is_dir($this->getBasePath() . DIRECTORY_SEPARATOR . $name);
     }
@@ -127,57 +137,57 @@ class Plugin
 
     /**
      * 设置应用
-     * @param string $appName
+     * @param string $pluginName
      */
-    protected function setApp(string $appName): void
+    protected function setApp(string $pluginName): void
     {
-        $this->appName = $appName;
-        $this->app->http->name($appName);
+        $this->appName = $pluginName;
+        $this->app->http->name($pluginName);
 
-        $appPath = $this->getBasePath() . $appName . DIRECTORY_SEPARATOR;
+        $pluginPath = $this->getBasePath() . $pluginName . DIRECTORY_SEPARATOR;
 
-        $this->app->setAppPath($appPath);
+        $this->app->setAppPath($pluginPath);
         // 设置应用命名空间
-        $this->app->setNamespace('plugin\\' . $appName);
+        $this->app->setNamespace('plugin\\' . $pluginName);
 
-        if (is_dir($appPath)) {
-            $this->app->setRuntimePath($this->app->getRuntimePath() . 'plugin' . DIRECTORY_SEPARATOR . $appName . DIRECTORY_SEPARATOR);
+        if (is_dir($pluginPath)) {
+            $this->app->setRuntimePath($this->app->getRuntimePath() . 'plugin' . DIRECTORY_SEPARATOR . $pluginName . DIRECTORY_SEPARATOR);
             $this->app->http->setRoutePath($this->getRoutePath());
 
             //加载应用
-            $this->loadApp($appName, $appPath);
+            $this->loadApp($pluginName, $pluginPath);
         }
     }
 
     /**
      * 加载应用文件
-     * @param string $appName 应用名
+     * @param string $pluginName 插件名
      * @return void
      */
-    protected function loadApp(string $appName, string $appPath): void
+    protected function loadApp(string $pluginName, string $pluginPath): void
     {
-        if (is_file($appPath . 'common.php')) {
-            include_once $appPath . 'common.php';
+        if (is_file($pluginPath . 'common.php')) {
+            include_once $pluginPath . 'common.php';
         }
 
         $files = [];
 
-        $files = array_merge($files, glob($appPath . 'config' . DIRECTORY_SEPARATOR . '*' . $this->app->getConfigExt()));
+        $files = array_merge($files, glob($pluginPath . 'config' . DIRECTORY_SEPARATOR . '*' . $this->app->getConfigExt()));
 
         foreach ($files as $file) {
-            $this->app->config->load($file, 'plugin_'.$appName.'_'.pathinfo($file, PATHINFO_FILENAME));
+            $this->app->config->load($file, 'plugin_'.$pluginName.'_'.pathinfo($file, PATHINFO_FILENAME));
         }
 
-        if (is_file($appPath . 'event.php')) {
-            $this->app->loadEvent(include $appPath . 'event.php');
+        if (is_file($pluginPath . 'event.php')) {
+            $this->app->loadEvent(include $pluginPath . 'event.php');
         }
 
-        if (is_file($appPath . 'middleware.php')) {
-            $this->app->middleware->import(include $appPath . 'middleware.php', 'app');
+        if (is_file($pluginPath . 'middleware.php')) {
+            $this->app->middleware->import(include $pluginPath . 'middleware.php', 'app');
         }
 
-        if (is_file($appPath . 'provider.php')) {
-            $this->app->bind(include $appPath . 'provider.php');
+        if (is_file($pluginPath . 'provider.php')) {
+            $this->app->bind(include $pluginPath . 'provider.php');
         }
 
         // 加载应用默认语言包
