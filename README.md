@@ -1,4 +1,4 @@
-<h1> think-addon </h1>
+<h1> think-plugin </h1>
 
 <p> 一款tp6插件包.</p>
 
@@ -6,7 +6,7 @@
 ## Installing
 
 ```shell
-$ composer require yunkeweb/think-addon -vvv
+$ composer require yunkeweb/think-plugin -vvv
 ```
 
 ## Usage
