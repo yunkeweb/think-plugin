@@ -27,6 +27,10 @@ if (!function_exists('plugin_info')){
         if ($appName === null){
             $appName = app('http')->getName();
         }
-       return include app()->getRootPath() . 'plugin' . DIRECTORY_SEPARATOR . $appName . DIRECTORY_SEPARATOR . 'config' . DIRECTORY_SEPARATOR .'info.php';
+        $info = app()->getRootPath() . 'plugin' . DIRECTORY_SEPARATOR . $appName . DIRECTORY_SEPARATOR . 'config' . DIRECTORY_SEPARATOR .'info.php';
+        if (is_file($info)){
+            return include $info;
+        }
+        return [];
     }
 }

@@ -15,8 +15,11 @@ namespace yunkeweb\plugin;
 use Closure;
 use think\App;
 use think\Exception;
+use think\exception\HttpException;
 use think\Request;
 use think\Response;
+use yunkeweb\plugin\exception\PluginNotFoundException;
+use yunkeweb\plugin\exception\PluginNotEnabledException;
 
 /**
  * 多应用模式支持
@@ -71,7 +74,7 @@ class Plugin
     }
 
     /**
-     * 解析多应用
+     * 解析插件
      * @return bool
      */
     protected function parsePlugin(): bool
@@ -88,11 +91,20 @@ class Plugin
 
         $name = next($pathArr);
 
-        if ($name && $this->checkPlugin($name)) {
+        if ($name) {
             $pluginName = $name;
-            // 获取info信息
-            if (!isset(plugin_info($pluginName)['status']) || plugin_info($pluginName)['status'] != 1){
-                throw new Exception("插件未启用");
+
+            if (!$this->checkPlugin($pluginName)){
+               throw new PluginNotFoundException('plugin not found',$pluginName);
+            }
+
+            $deny = $this->app->config->get('plugin.deny_app_list', []);
+            if (in_array($pluginName,$deny)){
+                throw new HttpException(404, 'plugin not exists:' . $name);
+            }
+
+            if (!isset(plugin_info($pluginName)['enabled']) || plugin_info($pluginName)['enabled'] !== true){
+                throw new PluginNotEnabledException('plugin not enabled',$pluginName);
             }
             $this->app->request->setRoot('/' . $name);
             $path = strpos($path, '/') ? ltrim(strstr($path, '/'), '/') : '';
@@ -104,9 +116,9 @@ class Plugin
         return true;
     }
 
-    protected function getPluginPath($pluginName)
+    protected function getPluginPath($pluginName): string
     {
-        return $pluginPath = $this->getBasePath() . $pluginName . DIRECTORY_SEPARATOR;
+        return $this->getBasePath() . $pluginName . DIRECTORY_SEPARATOR;
     }
 
     //检测插件是否存在
