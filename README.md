@@ -22,6 +22,11 @@ $ composer require yunkeweb/think-plugin -vvv
 ```shell
 composer dump
 ```
+## 访问
+xxx.com/plugin/插件名/控制器/方法
+
+多级访问
+xxx.com/plugin/插件名/目录名.控制器/方法
 
 ## Contributing
 
