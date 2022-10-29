@@ -12,7 +12,7 @@ if (!function_exists('plugin_config')){
 }
 
 if (!function_exists('plugin_path')){
-    function plugin_path($appName = null)
+    function plugin_path($appName = null): string
     {
         if ($appName === null){
             $appName = app('http')->getName();
@@ -31,6 +31,6 @@ if (!function_exists('plugin_info')){
         if (is_file($info)){
             return include $info;
         }
-        return [];
+        return null;
     }
 }
