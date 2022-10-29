@@ -89,10 +89,9 @@ class Plugin
             return false;
         }
 
-        $name = next($pathArr);
+        $pluginName = next($pathArr);
 
-        if ($name) {
-            $pluginName = $name;
+        if ($pluginName) {
 
             // 检测插件是否存在
             if (!$this->checkPlugin($pluginName)){
@@ -102,7 +101,7 @@ class Plugin
             // 检测插件是否禁止访问
             $deny = $this->app->config->get('plugin.deny_plugin_list', []);
             if (in_array($pluginName,$deny)){
-                throw new HttpException(404, 'plugin not exists:' . $name);
+                throw new HttpException(404, 'plugin not exists:' . $pluginName);
             }
 
             // 检测插件是否启用
@@ -110,13 +109,13 @@ class Plugin
                 throw new PluginNotEnabledException('plugin not enabled',$pluginName);
             }
 
-            $this->app->request->setRoot('/' . $name);
+            $this->app->request->setRoot('/' . $pluginName);
             $path = strpos($path, '/') ? ltrim(strstr($path, '/'), '/') : '';
             $this->app->request->setPathinfo(strpos($path, '/') ? ltrim(strstr($path, '/'), '/') : '');
         }else{
             return false;
         }
-        $this->setApp($pluginName);
+        $this->setPlugin($pluginName);
         return true;
     }
 
@@ -126,9 +125,9 @@ class Plugin
     }
 
     //检测插件是否存在
-    protected function checkPlugin($name): bool
+    protected function checkPlugin($pluginName): bool
     {
-        return is_dir($this->getBasePath() . DIRECTORY_SEPARATOR . $name);
+        return is_dir($this->getPluginPath($pluginName));
     }
 
     /**
@@ -155,9 +154,9 @@ class Plugin
      * 设置应用
      * @param string $pluginName
      */
-    protected function setApp(string $pluginName): void
+    protected function setPlugin(string $pluginName): void
     {
-        $this->appName = $pluginName;
+        $this->pluginName = $pluginName;
         $this->app->http->name($pluginName);
 
         $pluginPath = $this->getBasePath() . $pluginName . DIRECTORY_SEPARATOR;
@@ -170,17 +169,18 @@ class Plugin
             $this->app->setRuntimePath($this->app->getRuntimePath() . 'plugin' . DIRECTORY_SEPARATOR . $pluginName . DIRECTORY_SEPARATOR);
             $this->app->http->setRoutePath($this->getRoutePath());
 
-            //加载应用
-            $this->loadApp($pluginName, $pluginPath);
+            //加载插件
+            $this->loadPlugin($pluginName, $pluginPath);
         }
     }
 
     /**
      * 加载应用文件
      * @param string $pluginName 插件名
+     * @param string $pluginPath
      * @return void
      */
-    protected function loadApp(string $pluginName, string $pluginPath): void
+    protected function loadPlugin(string $pluginName, string $pluginPath): void
     {
         if (is_file($pluginPath . 'common.php')) {
             include_once $pluginPath . 'common.php';
