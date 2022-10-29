@@ -94,18 +94,22 @@ class Plugin
         if ($name) {
             $pluginName = $name;
 
+            // 检测插件是否存在
             if (!$this->checkPlugin($pluginName)){
                throw new PluginNotFoundException('plugin not found',$pluginName);
             }
 
-            $deny = $this->app->config->get('plugin.deny_app_list', []);
+            // 检测插件是否禁止访问
+            $deny = $this->app->config->get('plugin.deny_plugin_list', []);
             if (in_array($pluginName,$deny)){
                 throw new HttpException(404, 'plugin not exists:' . $name);
             }
 
+            // 检测插件是否启用
             if (!isset(plugin_info($pluginName)['enabled']) || plugin_info($pluginName)['enabled'] !== true){
                 throw new PluginNotEnabledException('plugin not enabled',$pluginName);
             }
+
             $this->app->request->setRoot('/' . $name);
             $path = strpos($path, '/') ? ltrim(strstr($path, '/'), '/') : '';
             $this->app->request->setPathinfo(strpos($path, '/') ? ltrim(strstr($path, '/'), '/') : '');
