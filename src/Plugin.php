@@ -54,7 +54,7 @@ class Plugin
     }
 
     /**
-     * 多应用解析
+     * 插件解析
      * @access public
      * @param Request $request
      * @param Closure $next
@@ -106,10 +106,10 @@ class Plugin
 
             // 检测插件是否启用
             if (!isset(plugin_info($pluginName)['enabled']) || plugin_info($pluginName)['enabled'] !== true){
-                throw new PluginNotEnabledException('plugin not enabled',$pluginName);
+                throw new PluginNotEnabledException('plugin not enabled:',$pluginName);
             }
 
-            $this->app->request->setRoot('/' . $pluginName);
+            $this->app->request->setRoot('/plugin/' . $pluginName);
             $path = strpos($path, '/') ? ltrim(strstr($path, '/'), '/') : '';
             $this->app->request->setPathinfo(strpos($path, '/') ? ltrim(strstr($path, '/'), '/') : '');
         }else{
