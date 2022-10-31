@@ -131,7 +131,7 @@ class Plugin
     }
 
     /**
-     * 获取路由目录
+     * 获取插件路由目录
      * @access protected
      * @return string
      */
@@ -141,7 +141,7 @@ class Plugin
     }
 
     /**
-     * 获取根目录
+     * 获取插件根目录
      * @return string
      */
 
