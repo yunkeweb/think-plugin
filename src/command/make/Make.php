@@ -61,7 +61,7 @@ abstract class Make extends Command
             $class,
             $this->app->config->get('route.action_suffix'),
             $namespace,
-            $this->getNamespace($this->plugin),
+            $this->getNamespace(),
         ], $stub);
     }
 
