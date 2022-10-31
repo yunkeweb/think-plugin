@@ -207,7 +207,7 @@ class Plugin
         }
 
         // 加载应用默认语言包
-        $this->app->loadLangPack($this->app->lang->defaultLangSet());
+        $this->app->loadLangPack();
     }
 
 }
