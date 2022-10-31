@@ -1,0 +1,12 @@
+{
+  "name_cn":"{%nameCn%}",
+  "name_en":"{%nameEn%}",
+  "description":"{%description%}",
+  "version":"dev",
+  "enabled":true,
+  "icon":"",
+  "author":{
+    "name":"{%name%}",
+    "email":"{%email%}"
+  }
+}

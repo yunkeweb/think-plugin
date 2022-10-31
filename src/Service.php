@@ -14,5 +14,10 @@ class Service extends BaseService
         $this->app->event->listen('HttpRun', function () {
             $this->app->middleware->add(Plugin::class);
         });
+
+        $this->commands([
+            'buildPlugin' => command\BuildPlugin::class,
+            'clearPlugin' => command\ClearPlugin::class,
+        ]);
     }
 }

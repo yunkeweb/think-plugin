@@ -36,18 +36,18 @@ if (!function_exists('plugin_info')){
     /**
      * 获取插件信息
      * @param $appName
-     * @return mixed|null
+     * @return array
      */
-    function plugin_info($appName = null)
+    function plugin_info($appName = null) : array
     {
         if ($appName === null){
             $appName = app('http')->getName();
         }
-        $info = app()->getRootPath() . 'plugin' . DIRECTORY_SEPARATOR . $appName . DIRECTORY_SEPARATOR . 'config' . DIRECTORY_SEPARATOR .'info' . app()->getConfigExt();
+        $info = app()->getRootPath() . 'plugin' . DIRECTORY_SEPARATOR . $appName . DIRECTORY_SEPARATOR . 'config.json';
         if (is_file($info)){
-            return include $info;
+            return json_decode(file_get_contents($info),true);
         }
-        return null;
+        return [];
     }
 }
 
