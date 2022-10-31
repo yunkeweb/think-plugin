@@ -66,7 +66,7 @@ class Plugin
             return $next($request);
         }
 
-        return $this->app->middleware->pipeline('app')
+        return $this->app->middleware->pipeline('plugin')
             ->send($request)
             ->then(function ($request) use ($next) {
                 return $next($request);
@@ -191,7 +191,7 @@ class Plugin
         $files = array_merge($files, glob($pluginPath . 'config' . DIRECTORY_SEPARATOR . '*' . $this->app->getConfigExt()));
 
         foreach ($files as $file) {
-            $this->app->config->load($file, 'plugin_'.$pluginName.'_'.pathinfo($file, PATHINFO_FILENAME));
+            $this->app->config->load($file, pathinfo($file, PATHINFO_FILENAME));
         }
 
         if (is_file($pluginPath . 'event.php')) {
@@ -199,7 +199,7 @@ class Plugin
         }
 
         if (is_file($pluginPath . 'middleware.php')) {
-            $this->app->middleware->import(include $pluginPath . 'middleware.php', 'app');
+            $this->app->middleware->import(include $pluginPath . 'middleware.php', 'plugin');
         }
 
         if (is_file($pluginPath . 'provider.php')) {
