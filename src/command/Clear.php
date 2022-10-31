@@ -9,12 +9,12 @@ use think\console\input\Argument;
 use think\console\input\Option;
 use think\console\Output;
 
-class ClearPlugin extends Command
+class Clear extends Command
 {
     protected function configure()
     {
         // 指令配置
-        $this->setName('clearPlugin')
+        $this->setName('plugin:clear')
             ->addArgument('plugin', Argument::OPTIONAL, 'plugin name .')
             ->addOption('cache', 'c', Option::VALUE_NONE, 'clear cache file')
             ->addOption('log', 'l', Option::VALUE_NONE, 'clear log file')

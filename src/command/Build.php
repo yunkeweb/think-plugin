@@ -9,7 +9,7 @@ use think\console\input\Argument;
 use think\console\input\Option;
 use think\console\Output;
 
-class BuildPlugin extends Command
+class Build extends Command
 {
     /**
      * 插件基础目录
@@ -43,7 +43,7 @@ class BuildPlugin extends Command
 
    protected function configure()
    {
-       $this->setName('buildPlugin')
+       $this->setName('plugin:build')
            ->addArgument('plugin', Argument::OPTIONAL, 'plugin name .')
            ->addOption('name',null,Option::VALUE_OPTIONAL,'插件中文名称')
            ->addOption('desc',null,Option::VALUE_OPTIONAL,'插件描述')
@@ -154,7 +154,7 @@ class BuildPlugin extends Command
        $filename = $this->basePath . $plugin . DIRECTORY_SEPARATOR . 'config.json';
 
        if (!is_file($filename)) {
-           $content = file_get_contents(__DIR__ . DIRECTORY_SEPARATOR . 'stubs' . DIRECTORY_SEPARATOR . 'config.stub');
+           $content = file_get_contents(__DIR__ . DIRECTORY_SEPARATOR . 'stubs' . DIRECTORY_SEPARATOR . 'build' . DIRECTORY_SEPARATOR . 'config.stub');
            $content = str_replace(['{%nameCn%}', '{%nameEn%}', '{%description%}', '{%name%}','{%email%}'], [$this->name, $plugin, $this->description, $this->author,$this->email], $content);
            $this->checkDirBuild(dirname($filename));
 
@@ -168,7 +168,7 @@ class BuildPlugin extends Command
         $filename = $this->basePath . $plugin . DIRECTORY_SEPARATOR . 'controller' . DIRECTORY_SEPARATOR . 'Index' . $suffix . '.php';
 
         if (!is_file($filename)) {
-            $content = file_get_contents(__DIR__ . DIRECTORY_SEPARATOR . 'stubs' . DIRECTORY_SEPARATOR . 'controller.stub');
+            $content = file_get_contents(__DIR__ . DIRECTORY_SEPARATOR . 'stubs' . DIRECTORY_SEPARATOR . 'build' . DIRECTORY_SEPARATOR . 'controller.stub');
             $content = str_replace(['{%name%}', '{%app%}', '{%layer%}', '{%suffix%}'], [$plugin, $namespace, 'controller', $suffix], $content);
             $this->checkDirBuild(dirname($filename));
 
