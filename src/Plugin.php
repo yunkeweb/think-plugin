@@ -63,7 +63,7 @@ class Plugin
      */
     public function handle(Request $request, Closure $next): Response
     {
-        if (!$this->parsePlugin()) {
+        if (!$this->parsePlugin($request)) {
             return $next($request);
         }
 
@@ -78,7 +78,7 @@ class Plugin
      * 解析插件
      * @return bool
      */
-    protected function parsePlugin(): bool
+    protected function parsePlugin(Request $request): bool
     {
         $path = $this->app->request->pathinfo();
 
@@ -117,7 +117,7 @@ class Plugin
         }else{
             return false;
         }
-        $this->setPlugin($pluginName);
+        $this->setPlugin($pluginName,$request);
         Event::trigger('PluginEnd',$pluginName);
         return true;
     }
@@ -157,14 +157,14 @@ class Plugin
      * 设置应用
      * @param string $pluginName
      */
-    protected function setPlugin(string $pluginName): void
+    protected function setPlugin(string $pluginName,Request $request): void
     {
         $this->pluginName = $pluginName;
-        $this->app->http->name($pluginName);
-
+//        $this->app->http->name($pluginName);
+        $request->pluginName = $pluginName;
         $pluginPath = $this->getBasePath() . $pluginName . DIRECTORY_SEPARATOR;
 
-        $this->app->setAppPath($pluginPath);
+//        $this->app->setAppPath($pluginPath);
         // 设置应用命名空间
         $this->app->setNamespace('plugin\\' . $pluginName);
 
@@ -173,17 +173,16 @@ class Plugin
             $this->app->http->setRoutePath($this->getRoutePath());
 
             //加载插件
-            $this->loadPlugin($pluginName, $pluginPath);
+            $this->loadPlugin($pluginPath);
         }
     }
 
     /**
      * 加载应用文件
-     * @param string $pluginName 插件名
      * @param string $pluginPath
      * @return void
      */
-    protected function loadPlugin(string $pluginName, string $pluginPath): void
+    protected function loadPlugin(string $pluginPath): void
     {
         if (is_file($pluginPath . 'common.php')) {
             include_once $pluginPath . 'common.php';

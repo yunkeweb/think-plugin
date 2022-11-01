@@ -4,14 +4,11 @@ declare (strict_types=1);
 if (!function_exists('plugin_path')){
     /**
      * 获取插件目录
-     * @param $appName
+     * @param string $appName
      * @return string
      */
-    function plugin_path($appName = null): string
+    function plugin_path(string $appName): string
     {
-        if ($appName === null){
-            $appName = app('http')->getName();
-        }
         return app()->getRootPath() . 'plugin' . DIRECTORY_SEPARATOR . $appName . DIRECTORY_SEPARATOR;
     }
 }
@@ -19,14 +16,11 @@ if (!function_exists('plugin_path')){
 if (!function_exists('plugin_info')){
     /**
      * 获取插件信息
-     * @param $appName
+     * @param string $appName
      * @return array
      */
-    function plugin_info($appName = null) : array
+    function plugin_info(string $appName) : array
     {
-        if ($appName === null){
-            $appName = app('http')->getName();
-        }
         $info = app()->getRootPath() . 'plugin' . DIRECTORY_SEPARATOR . $appName . DIRECTORY_SEPARATOR . 'config.json';
         if (is_file($info)){
             return json_decode(file_get_contents($info),true);
@@ -49,14 +43,11 @@ if (!function_exists('plugin_base_path')){
 if (!function_exists('plugin_config_path')){
     /**
      * 获取插件配置目录
-     * @param null $appName
+     * @param string $appName
      * @return string
      */
-    function plugin_config_path($appName = null): string
+    function plugin_config_path(string $appName): string
     {
-        if ($appName === null){
-            $appName = app('http')->getName();
-        }
         return app()->getRootPath() . 'plugin' . DIRECTORY_SEPARATOR . $appName . DIRECTORY_SEPARATOR . 'config' . DIRECTORY_SEPARATOR;
     }
 }
@@ -64,14 +55,11 @@ if (!function_exists('plugin_config_path')){
 if (!function_exists('plugin_runtime_path')){
     /**
      * 获取插件运行时目录
-     * @param $appName
+     * @param string $appName
      * @return string
      */
-    function plugin_runtime_path($appName = null): string
+    function plugin_runtime_path(string $appName): string
     {
-        if ($appName === null){
-            $appName = app('http')->getName();
-        }
         return app()->getRootPath() . 'runtime' . DIRECTORY_SEPARATOR . 'plugin' . DIRECTORY_SEPARATOR . $appName . DIRECTORY_SEPARATOR;
     }
 }

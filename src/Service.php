@@ -22,16 +22,9 @@ class Service extends BaseService
 {
     public function boot()
     {
-        // 插件服务开始
-        Event::trigger('PluginServiceBegin');
-        // 加载全局事件
-        $this->loadEvent();
-        // 加载全局服务者
-        $this->bindProvider();
         $this->app->event->listen('HttpRun', function () {
             $this->app->middleware->add(Plugin::class);
         });
-
         $this->commands([
             'plugin:build'   => Build::class,
             'plugin:clear'   => Clear::class,
@@ -45,8 +38,13 @@ class Service extends BaseService
             'plugin:subscribe' => Subscribe::class,
             'plugin:validate' => Validate::class,
         ]);
-        // 插件服务结束
-        Event::trigger('PluginServiceEnd');
+
+        $this->app->event->listen('RouteLoaded',function (){
+            // 加载全局事件
+            $this->loadEvent();
+            // 加载全局服务者
+            $this->bindProvider();
+        });
     }
 
     protected function bindProvider()
