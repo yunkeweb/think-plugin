@@ -16,6 +16,7 @@ use Closure;
 use think\App;
 use think\Exception;
 use think\exception\HttpException;
+use think\facade\Event;
 use think\Request;
 use think\Response;
 use yunkeweb\plugin\exception\PluginNotFoundException;
@@ -108,7 +109,8 @@ class Plugin
             if (!isset(plugin_info($pluginName)['enabled']) || plugin_info($pluginName)['enabled'] !== true){
                 throw new PluginNotEnabledException('plugin not enabled:',$pluginName);
             }
-
+            // 插件开始
+            Event::trigger('PluginBegin',$pluginName);
             $this->app->request->setRoot('/plugin/' . $pluginName);
             $path = strpos($path, '/') ? ltrim(strstr($path, '/'), '/') : '';
             $this->app->request->setPathinfo(strpos($path, '/') ? ltrim(strstr($path, '/'), '/') : '');
@@ -116,6 +118,7 @@ class Plugin
             return false;
         }
         $this->setPlugin($pluginName);
+        Event::trigger('PluginEnd',$pluginName);
         return true;
     }
 
