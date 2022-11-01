@@ -193,15 +193,15 @@ class Plugin
         foreach ($files as $file) {
             $this->app->config->load($file, pathinfo($file, PATHINFO_FILENAME));
         }
-
+        // 加载插件级事件
         if (is_file($pluginPath . 'event.php')) {
             $this->app->loadEvent(include $pluginPath . 'event.php');
         }
-
+        // 加载插件级中间件
         if (is_file($pluginPath . 'middleware.php')) {
             $this->app->middleware->import(include $pluginPath . 'middleware.php', 'plugin');
         }
-
+        // 加载插件级服务者
         if (is_file($pluginPath . 'provider.php')) {
             $this->app->bind(include $pluginPath . 'provider.php');
         }
