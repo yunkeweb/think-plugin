@@ -180,7 +180,11 @@ class Build extends Command
     {
         $pluginPath = $this->basePath . $plugin . DIRECTORY_SEPARATOR;
 
-        foreach (['event', 'middleware', 'common' , 'hook','global_provider','provider'] as $name) {
+        if (!is_file($pluginPath . 'common.php')) {
+            file_put_contents($pluginPath . 'common.php', "<?php" . PHP_EOL . "// 这是系统自动生成的公共文件" . PHP_EOL);
+        }
+
+        foreach (['event', 'middleware', 'hook','global_provider','provider'] as $name) {
             if (!is_file($pluginPath . $name . '.php')) {
                 file_put_contents($pluginPath . $name . '.php', "<?php" . PHP_EOL . "// 这是系统自动生成的{$name}定义文件" . PHP_EOL . "return [" . PHP_EOL . PHP_EOL . "];" . PHP_EOL);
             }
