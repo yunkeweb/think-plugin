@@ -14,13 +14,9 @@ namespace yunkeweb\plugin;
 
 use Closure;
 use think\App;
-use think\Exception;
-use think\exception\HttpException;
 use think\facade\Event;
 use think\Request;
 use think\Response;
-use yunkeweb\plugin\exception\PluginNotFoundException;
-use yunkeweb\plugin\exception\PluginNotEnabledException;
 
 /**
  * 多应用模式支持
@@ -44,10 +40,10 @@ class Plugin
     protected $pluginName;
 
     /**
-     * 应用路径
+     * 插件路径
      * @var string
      */
-    protected $path;
+    protected $pluginPath;
 
     public function __construct(App $app)
     {
@@ -93,22 +89,25 @@ class Plugin
         $pluginName = next($pathArr);
 
         if ($pluginName) {
-
-            // 检测插件是否存在
-            if (!$this->checkPlugin($pluginName)){
-               throw new PluginNotFoundException('plugin not found',$pluginName);
-            }
-
             // 检测插件是否禁止访问
             $deny = $this->app->config->get('plugin.deny_plugin_list', []);
             if (in_array($pluginName,$deny)){
-                throw new HttpException(404, 'plugin not exists:' . $pluginName);
+                return false;
             }
 
             // 检测插件是否启用
             if (!isset(plugin_info($pluginName)['enabled']) || plugin_info($pluginName)['enabled'] !== true){
-                throw new PluginNotEnabledException('plugin not enabled:',$pluginName);
+                return false;
             }
+            // 设置插件路径
+            $this->pluginPath = $this->getBasePath() . $pluginName . DIRECTORY_SEPARATOR;
+            $this->pluginName = $pluginName;
+
+            // 检测插件是否存在
+            if (!is_dir($this->pluginPath)){
+                return false;
+            }
+            $request->pluginName = $pluginName;
             // 插件开始
             Event::trigger('PluginBegin',$pluginName);
             $this->app->request->setRoot('/plugin/' . $pluginName);
@@ -117,20 +116,14 @@ class Plugin
         }else{
             return false;
         }
-        $this->setPlugin($pluginName,$request);
+        $this->setPlugin();
         Event::trigger('PluginEnd',$pluginName);
         return true;
     }
 
-    protected function getPluginPath($pluginName): string
+    protected function getPluginPath(): string
     {
-        return $this->getBasePath() . $pluginName . DIRECTORY_SEPARATOR;
-    }
-
-    //检测插件是否存在
-    protected function checkPlugin($pluginName): bool
-    {
-        return is_dir($this->getPluginPath($pluginName));
+        return $this->pluginPath;
     }
 
     /**
@@ -140,7 +133,7 @@ class Plugin
      */
     protected function getRoutePath(): string
     {
-        return $this->app->getAppPath() . 'route' . DIRECTORY_SEPARATOR;
+        return $this->pluginPath . 'route' . DIRECTORY_SEPARATOR;
     }
 
     /**
@@ -157,23 +150,16 @@ class Plugin
      * 设置应用
      * @param string $pluginName
      */
-    protected function setPlugin(string $pluginName,Request $request): void
+    protected function setPlugin(): void
     {
-        $this->pluginName = $pluginName;
-//        $this->app->http->name($pluginName);
-        $request->pluginName = $pluginName;
-        $pluginPath = $this->getBasePath() . $pluginName . DIRECTORY_SEPARATOR;
-
-//        $this->app->setAppPath($pluginPath);
         // 设置应用命名空间
-        $this->app->setNamespace('plugin\\' . $pluginName);
+        $this->app->setNamespace('plugin\\' . $this->pluginName);
 
-        if (is_dir($pluginPath)) {
-            $this->app->setRuntimePath($this->app->getRuntimePath() . 'plugin' . DIRECTORY_SEPARATOR . $pluginName . DIRECTORY_SEPARATOR);
+        if (is_dir($this->pluginPath)) {
+            $this->app->setRuntimePath($this->app->getRuntimePath() . 'plugin' . DIRECTORY_SEPARATOR . $this->pluginName . DIRECTORY_SEPARATOR);
             $this->app->http->setRoutePath($this->getRoutePath());
-
             //加载插件
-            $this->loadPlugin($pluginPath);
+            $this->loadPlugin();
         }
     }
 
@@ -182,30 +168,30 @@ class Plugin
      * @param string $pluginPath
      * @return void
      */
-    protected function loadPlugin(string $pluginPath): void
+    protected function loadPlugin(): void
     {
-        if (is_file($pluginPath . 'common.php')) {
-            include_once $pluginPath . 'common.php';
+        if (is_file($this->pluginPath . 'common.php')) {
+            include_once $this->pluginPath . 'common.php';
         }
 
         $files = [];
 
-        $files = array_merge($files, glob($pluginPath . 'config' . DIRECTORY_SEPARATOR . '*' . $this->app->getConfigExt()));
+        $files = array_merge($files, glob($this->pluginPath . 'config' . DIRECTORY_SEPARATOR . '*' . $this->app->getConfigExt()));
 
         foreach ($files as $file) {
             $this->app->config->load($file, pathinfo($file, PATHINFO_FILENAME));
         }
         // 加载插件级事件
-        if (is_file($pluginPath . 'event.php')) {
-            $this->app->loadEvent(include $pluginPath . 'event.php');
+        if (is_file($this->pluginPath . 'event.php')) {
+            $this->app->loadEvent(include $this->pluginPath . 'event.php');
         }
         // 加载插件级中间件
-        if (is_file($pluginPath . 'middleware.php')) {
-            $this->app->middleware->import(include $pluginPath . 'middleware.php', 'plugin');
+        if (is_file($this->pluginPath . 'middleware.php')) {
+            $this->app->middleware->import(include $this->pluginPath . 'middleware.php', 'plugin');
         }
         // 加载插件级服务者
-        if (is_file($pluginPath . 'provider.php')) {
-            $this->app->bind(include $pluginPath . 'provider.php');
+        if (is_file($this->pluginPath . 'provider.php')) {
+            $this->app->bind(include $this->pluginPath . 'provider.php');
         }
 
         // 加载应用默认语言包

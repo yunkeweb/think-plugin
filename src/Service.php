@@ -3,7 +3,6 @@ declare (strict_types=1);
 
 namespace yunkeweb\plugin;
 
-use think\facade\Cache;
 use think\facade\Config;
 use think\Service as BaseService;
 use yunkeweb\plugin\command\Build;
@@ -17,7 +16,6 @@ use yunkeweb\plugin\command\make\Model;
 use yunkeweb\plugin\command\make\Service as ServiceCommand;
 use yunkeweb\plugin\command\make\Subscribe;
 use yunkeweb\plugin\command\make\Validate;
-use think\facade\Event;
 
 class Service extends BaseService
 {
