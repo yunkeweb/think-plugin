@@ -45,9 +45,16 @@ class Plugin
      */
     protected $pluginPath;
 
+    /**
+     * 插件根目录
+     * @var string
+     */
+    protected $basePath;
+
     public function __construct(App $app)
     {
         $this->app  = $app;
+        $this->basePath = $app->getRootPath() . 'plugin' . DIRECTORY_SEPARATOR;
     }
 
     /**
@@ -59,7 +66,7 @@ class Plugin
      */
     public function handle(Request $request, Closure $next): Response
     {
-        if (!$this->parsePlugin($request)) {
+        if (!$this->parsePlugin()) {
             return $next($request);
         }
 
@@ -74,7 +81,7 @@ class Plugin
      * 解析插件
      * @return bool
      */
-    protected function parsePlugin(Request $request): bool
+    protected function parsePlugin(): bool
     {
         $path = $this->app->request->pathinfo();
 
@@ -107,7 +114,7 @@ class Plugin
             if (!is_dir($this->pluginPath)){
                 return false;
             }
-            $request->pluginName = $pluginName;
+            $this->app->request->pluginName = $pluginName;
             // 插件开始
             Event::trigger('PluginBegin',$pluginName);
             $this->app->request->setRoot('/plugin/' . $pluginName);
@@ -128,12 +135,11 @@ class Plugin
 
     /**
      * 获取插件路由目录
-     * @access protected
      * @return string
      */
     protected function getRoutePath(): string
     {
-        return $this->pluginPath . 'route' . DIRECTORY_SEPARATOR;
+        return $this->getPluginPath() . 'route' . DIRECTORY_SEPARATOR;
     }
 
     /**
@@ -141,26 +147,32 @@ class Plugin
      * @return string
      */
 
-    public function getBasePath(): string
+    protected function getBasePath(): string
     {
-        return $this->app->getRootPath() . 'plugin' . DIRECTORY_SEPARATOR;
+        return $this->basePath;
+    }
+
+    /**
+     * 获取解析的插件名
+     * @return string
+     */
+    protected function getPluginName(): string
+    {
+        return $this->pluginName;
     }
 
     /**
      * 设置应用
-     * @param string $pluginName
      */
     protected function setPlugin(): void
     {
+        $pluginName = $this->getPluginName();
         // 设置应用命名空间
-        $this->app->setNamespace('plugin\\' . $this->pluginName);
-
-        if (is_dir($this->pluginPath)) {
-            $this->app->setRuntimePath($this->app->getRuntimePath() . 'plugin' . DIRECTORY_SEPARATOR . $this->pluginName . DIRECTORY_SEPARATOR);
-            $this->app->http->setRoutePath($this->getRoutePath());
-            //加载插件
-            $this->loadPlugin();
-        }
+        $this->app->setNamespace('plugin\\' . $pluginName);
+        $this->app->setRuntimePath($this->app->getRuntimePath() . 'plugin' . DIRECTORY_SEPARATOR . $pluginName . DIRECTORY_SEPARATOR);
+        $this->app->http->setRoutePath($this->getRoutePath());
+        //加载插件
+        $this->loadPlugin();
     }
 
     /**
@@ -170,28 +182,30 @@ class Plugin
      */
     protected function loadPlugin(): void
     {
-        if (is_file($this->pluginPath . 'common.php')) {
-            include_once $this->pluginPath . 'common.php';
+        $pluginPath = $this->getPluginPath();
+
+        if (is_file($pluginPath . 'common.php')) {
+            include_once $pluginPath . 'common.php';
         }
 
         $files = [];
 
-        $files = array_merge($files, glob($this->pluginPath . 'config' . DIRECTORY_SEPARATOR . '*' . $this->app->getConfigExt()));
+        $files = array_merge($files, glob($pluginPath . 'config' . DIRECTORY_SEPARATOR . '*' . $this->app->getConfigExt()));
 
         foreach ($files as $file) {
             $this->app->config->load($file, pathinfo($file, PATHINFO_FILENAME));
         }
         // 加载插件级事件
-        if (is_file($this->pluginPath . 'event.php')) {
-            $this->app->loadEvent(include $this->pluginPath . 'event.php');
+        if (is_file($pluginPath . 'event.php')) {
+            $this->app->loadEvent(include $pluginPath . 'event.php');
         }
         // 加载插件级中间件
-        if (is_file($this->pluginPath . 'middleware.php')) {
-            $this->app->middleware->import(include $this->pluginPath . 'middleware.php', 'plugin');
+        if (is_file($pluginPath . 'middleware.php')) {
+            $this->app->middleware->import(include $pluginPath . 'middleware.php', 'plugin');
         }
         // 加载插件级服务者
-        if (is_file($this->pluginPath . 'provider.php')) {
-            $this->app->bind(include $this->pluginPath . 'provider.php');
+        if (is_file($pluginPath . 'provider.php')) {
+            $this->app->bind(include $pluginPath . 'provider.php');
         }
 
         // 加载应用默认语言包
